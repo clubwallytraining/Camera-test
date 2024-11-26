@@ -27,14 +27,26 @@ async function loadCSV() {
         } else {
             const response = await fetch(csvFileName);
             if (!response.ok) {
-                throw new Error('CSV file not found.');
+                // If data.csv is empty or not found, initialize an empty array
+                if (response.status === 404 || response.status === 400) {
+                    csvData = [];
+                    console.warn('CSV file not found. Initializing with empty data.');
+                } else {
+                    throw new Error('Failed to fetch CSV file.');
+                }
+            } else {
+                const csvText = await response.text();
+                if (csvText.trim() === '') {
+                    csvData = [];
+                    console.warn('CSV file is empty. Initializing with empty data.');
+                } else {
+                    const parsedData = Papa.parse(csvText, { header: true });
+                    csvData = parsedData.data.filter(row => row.upc); // Filter out empty rows
+                    console.log('Loaded CSV data from data.csv:', csvData);
+                }
+                // Save to localStorage
+                localStorage.setItem('csvData', JSON.stringify(csvData));
             }
-            const csvText = await response.text();
-            const parsedData = Papa.parse(csvText, { header: true });
-            csvData = parsedData.data.filter(row => row.upc); // Filter out empty rows
-            console.log('Loaded CSV data from data.csv:', csvData);
-            // Save to localStorage
-            localStorage.setItem('csvData', JSON.stringify(csvData));
         }
     } catch (error) {
         console.error('Error loading CSV:', error);
@@ -156,7 +168,7 @@ function drawGuideRectangle() {
 
     overlayCtx.beginPath();
     overlayCtx.lineWidth = 4;
-    overlayCtx.strokeStyle = '#FF0000';
+    overlayCtx.strokeStyle = 'rgba(255, 0, 0, 0.7)'; // Semi-transparent red
     overlayCtx.rect(rectX, rectY, rectWidth, rectHeight);
     overlayCtx.stroke();
 }
