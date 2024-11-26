@@ -30,7 +30,7 @@ async function loadCSV() {
                 // If data.csv is empty or not found, initialize an empty array
                 if (response.status === 404 || response.status === 400) {
                     csvData = [];
-                    console.warn('CSV file not found. Initializing with empty data.');
+                    console.warn('CSV file not found or empty. Initializing with empty data.');
                 } else {
                     throw new Error('Failed to fetch CSV file.');
                 }
