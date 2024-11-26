@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera Viewport</title>
+    <title>Camera Viewport - Rear Camera</title>
     <style>
         body {
             display: flex;
@@ -59,8 +59,8 @@
     </style>
 </head>
 <body>
-    <h1>Camera Viewport</h1>
-    <button id="startButton">Start Camera</button>
+    <h1>Camera Viewport - Rear Camera</h1>
+    <button id="startButton">Start Rear Camera</button>
 
     <div id="videoContainer">
         <video id="video" autoplay playsinline></video>
@@ -81,8 +81,10 @@
             errorMsg.textContent = '';
 
             try {
-                // Request video stream
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Request video stream with rear camera preference
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { exact: "environment" } }
+                });
                 // Set the video source to the stream
                 video.srcObject = stream;
                 video.play();
@@ -91,9 +93,25 @@
                 // Hide the start button
                 startButton.style.display = 'none';
             } catch (err) {
-                // Handle errors
-                displayError(`Error accessing camera: ${err.message}`);
-                console.error(err);
+                // Handle errors (e.g., environment camera not available)
+                console.error('Error accessing camera:', err);
+                if (err.name === 'OverconstrainedError' || err.name === 'NotAllowedError') {
+                    // Fallback to any available video source if environment camera is not available
+                    try {
+                        const fallbackStream = await navigator.mediaDevices.getUserMedia({
+                            video: true
+                        });
+                        video.srcObject = fallbackStream;
+                        video.play();
+                        videoContainer.style.display = 'block';
+                        startButton.style.display = 'none';
+                    } catch (fallbackErr) {
+                        displayError(`Unable to access the camera: ${fallbackErr.message}`);
+                        console.error(fallbackErr);
+                    }
+                } else {
+                    displayError(`Error accessing camera: ${err.message}`);
+                }
             }
         }
 
