@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Viewport</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #videoContainer {
+            position: relative;
+            width: 90%;
+            max-width: 600px;
+            background-color: #000;
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 20px;
+            display: none; /* Hidden initially */
+        }
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        #errorMsg {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background-color: rgba(255, 0, 0, 0.8);
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            font-size: 14px;
+            text-align: center;
+        }
+        #startButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #0066cc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #startButton:hover {
+            background-color: #005bb5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Camera Viewport</h1>
+    <button id="startButton">Start Camera</button>
+
+    <div id="videoContainer">
+        <video id="video" autoplay playsinline></video>
+        <div id="errorMsg"></div>
+    </div>
+
+    <script>
+        // Select elements
+        const video = document.getElementById('video');
+        const errorMsg = document.getElementById('errorMsg');
+        const videoContainer = document.getElementById('videoContainer');
+        const startButton = document.getElementById('startButton');
+
+        // Function to request camera access
+        async function startCamera() {
+            // Hide previous error message
+            errorMsg.style.display = 'none';
+            errorMsg.textContent = '';
+
+            try {
+                // Request video stream
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Set the video source to the stream
+                video.srcObject = stream;
+                video.play();
+                // Show the video container
+                videoContainer.style.display = 'block';
+                // Hide the start button
+                startButton.style.display = 'none';
+            } catch (err) {
+                // Handle errors
+                displayError(`Error accessing camera: ${err.message}`);
+                console.error(err);
+            }
+        }
+
+        /**
+         * Displays an error message to the user.
+         * @param {string} msg - The error message to display.
+         */
+        function displayError(msg) {
+            errorMsg.style.display = 'block';
+            errorMsg.textContent = msg;
+        }
+
+        // Check for mediaDevices API support
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            displayError('getUserMedia is not supported by your browser.');
+            startButton.disabled = true;
+            startButton.textContent = 'Camera Not Supported';
+        }
+
+        // Add event listener to the start button
+        startButton.addEventListener('click', startCamera);
+    </script>
+</body>
+</html>
