@@ -23,6 +23,7 @@ async function loadCSV() {
         const storedData = localStorage.getItem('csvData');
         if (storedData) {
             csvData = JSON.parse(storedData);
+            console.log('Loaded CSV data from localStorage.');
         } else {
             const response = await fetch(csvFileName);
             if (!response.ok) {
@@ -31,6 +32,7 @@ async function loadCSV() {
             const csvText = await response.text();
             const parsedData = Papa.parse(csvText, { header: true });
             csvData = parsedData.data.filter(row => row.upc); // Filter out empty rows
+            console.log('Loaded CSV data from data.csv:', csvData);
             // Save to localStorage
             localStorage.setItem('csvData', JSON.stringify(csvData));
         }
@@ -90,6 +92,7 @@ function startScanner() {
             return;
         }
         Quagga.start();
+        console.log('Quagga started.');
     });
 
     Quagga.onDetected(onDetected);
@@ -102,6 +105,7 @@ function onDetected(result) {
     if (code !== currentUPC) { // Prevent multiple detections of the same UPC
         currentUPC = code;
         Quagga.pause(); // Pause scanning while processing
+        console.log('Detected UPC:', code);
         handleUPC(code);
     }
 }
@@ -168,6 +172,7 @@ function handleUPC(upc) {
         currentUPC = upc;
         infoModal.style.display = 'block';
         modalUPC.textContent = upc;
+        console.log('UPC not found or missing data:', upc);
     }
 }
 
@@ -178,12 +183,15 @@ function showAROverlay(item) {
     
     // Display information on the screen as AR elements
     showMessage(`Item: ${item['item name']} | Aisle: ${item['aisle location']} | Pallet: ${item['downstack pallet']}`, false);
+    console.log('Displaying item information:', item);
     
     // Optionally, you can implement more advanced AR overlays here
     
     // Resume scanning after displaying
     setTimeout(() => {
+        currentUPC = ''; // Reset currentUPC to allow re-detection
         Quagga.start();
+        console.log('Quagga resumed.');
     }, 3000);
 }
 
@@ -204,23 +212,32 @@ saveInfoButton.addEventListener('click', () => {
         csvData[existingIndex]['item name'] = itemName;
         csvData[existingIndex]['aisle location'] = aisleLocation;
         csvData[existingIndex]['downstack pallet'] = pallet;
+        console.log('Updated existing item:', csvData[existingIndex]);
     } else {
         // Add new entry to csvData
-        csvData.push({
+        const newEntry = {
             upc: currentUPC,
             'item name': itemName,
             'aisle location': aisleLocation,
             'downstack pallet': pallet
-        });
+        };
+        csvData.push(newEntry);
+        console.log('Added new item:', newEntry);
     }
 
     // Save to localStorage
     localStorage.setItem('csvData', JSON.stringify(csvData));
 
+    // Clear input fields
+    document.getElementById('itemName').value = '';
+    document.getElementById('aisleLocation').value = '';
+    document.getElementById('pallet').value = '';
+
     // Close modal and resume scanning
     infoModal.style.display = 'none';
     showMessage('Information saved.', false);
     Quagga.start();
+    console.log('Quagga resumed after saving information.');
 });
 
 // Export CSV
@@ -232,29 +249,36 @@ function exportCSV() {
     const csv = Papa.unparse(csvData);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, "updated_data.csv");
+    showMessage('CSV exported successfully.', false);
+    console.log('CSV exported.');
 }
 
 // Event Listeners
 startButton.addEventListener('click', () => {
     startScanner();
     startButton.style.display = 'none';
+    console.log('Start Scanner button clicked.');
 });
 
 exportButton.addEventListener('click', exportCSV);
+console.log('Export CSV button initialized.');
 
 // Close modal when clicking outside of it
 window.onclick = function(event) {
     if (event.target == infoModal) {
         infoModal.style.display = "none";
         Quagga.start();
+        console.log('Modal closed by clicking outside.');
     }
 }
 
 // Initialize the app
 window.onload = loadCSV;
+console.log('Page loaded. CSV data is being loaded.');
 
 // Adjust canvas size when video metadata is loaded
 video.addEventListener('loadedmetadata', () => {
     overlay.width = video.videoWidth;
     overlay.height = video.videoHeight;
+    console.log('Canvas size set to video dimensions.');
 });
