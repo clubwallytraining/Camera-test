@@ -106,7 +106,7 @@ function onDetected(result) {
     }
 }
 
-// Handler for processed frames to draw AR elements
+// Handler for processed frames to draw AR elements and the rectangle guide
 function onProcessed(result) {
     overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
     if (result) {
@@ -124,6 +124,9 @@ function onProcessed(result) {
             drawPath(result.line, '#FF0000');
         }
     }
+
+    // Draw the rectangle guide
+    drawGuideRectangle();
 }
 
 // Function to draw paths on the canvas
@@ -135,6 +138,22 @@ function drawPath(path, color) {
     });
     overlayCtx.lineWidth = 2;
     overlayCtx.strokeStyle = color;
+    overlayCtx.stroke();
+}
+
+// Function to draw the rectangle guide
+function drawGuideRectangle() {
+    const width = overlay.width;
+    const height = overlay.height;
+    const rectWidth = width * 0.6;
+    const rectHeight = height * 0.2;
+    const rectX = (width - rectWidth) / 2;
+    const rectY = (height - rectHeight) / 2;
+
+    overlayCtx.beginPath();
+    overlayCtx.lineWidth = 4;
+    overlayCtx.strokeStyle = '#FF0000';
+    overlayCtx.rect(rectX, rectY, rectWidth, rectHeight);
     overlayCtx.stroke();
 }
 
