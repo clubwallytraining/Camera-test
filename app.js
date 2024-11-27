@@ -1,89 +1,88 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const messageBox = document.getElementById("message");
-    const startButton = document.getElementById("startScanner");
-    const exportButton = document.getElementById("exportData");
-    let csvData = [];
-    let isScannerActive = false;
+$(function () {
+    const App = {
+        init() {
+            this.attachListeners();
+            this.initCameraSelection();
+        },
 
-    // Show a temporary message
-    function showMessage(message, isError = false) {
-        messageBox.textContent = message;
-        messageBox.className = isError ? "error" : "success";
-        messageBox.style.display = "block";
-        setTimeout(() => {
-            messageBox.style.display = "none";
-        }, 3000);
-    }
+        attachListeners() {
+            $("#stopScanner").on("click", () => {
+                Quagga.stop();
+                console.log("Scanner stopped.");
+            });
 
-    // Initialize the scanner
-    function initScanner() {
-        Quagga.init(
-            {
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: document.querySelector("#interactive"),
-                    constraints: {
-                        facingMode: "environment",
+            $("#barcodeType, #resolution, #cameraSelection").on("change", () => {
+                App.updateSettings();
+            });
+
+            $("#startScanner").on("click", () => {
+                App.startScanner();
+            });
+        },
+
+        initCameraSelection() {
+            Quagga.CameraAccess.enumerateVideoDevices().then((devices) => {
+                const cameraSelection = $("#cameraSelection");
+                devices.forEach((device) => {
+                    const option = $("<option>")
+                        .val(device.deviceId)
+                        .text(device.label || `Camera ${cameraSelection.children().length + 1}`);
+                    cameraSelection.append(option);
+                });
+            });
+        },
+
+        startScanner() {
+            const barcodeType = $("#barcodeType").val();
+            const resolution = $("#resolution").val().split("x");
+            const cameraDevice = $("#cameraSelection").val();
+
+            Quagga.init(
+                {
+                    inputStream: {
+                        type: "LiveStream",
+                        constraints: {
+                            width: { min: parseInt(resolution[0]) },
+                            height: { min: parseInt(resolution[1]) },
+                            deviceId: cameraDevice,
+                            facingMode: "environment",
+                        },
+                        target: document.querySelector("#interactive"),
                     },
+                    decoder: {
+                        readers: [`${barcodeType}_reader`],
+                    },
+                    locate: true,
                 },
-                decoder: {
-                    readers: ["upc_reader", "code_128_reader"],
-                },
-                locate: true,
-            },
-            (err) => {
-                if (err) {
-                    console.error("Quagga initialization error:", err);
-                    showMessage("Error initializing scanner", true);
-                    return;
+                (err) => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    Quagga.start();
+                    console.log("Scanner started.");
                 }
-                Quagga.start();
-                isScannerActive = true;
-                showMessage("Scanner started successfully");
-            }
-        );
+            );
 
-        Quagga.onDetected((data) => {
-            const code = data.codeResult.code;
-            if (!csvData.some((item) => item.code === code)) {
-                csvData.push({ code });
-                showMessage(`Detected: ${code}`);
-            }
-        });
-    }
+            Quagga.onDetected((data) => {
+                const code = data.codeResult.code;
+                if (code) {
+                    console.log(`Detected code: ${code}`);
+                    App.displayResult(code);
+                }
+            });
+        },
 
-    // Stop the scanner
-    function stopScanner() {
-        if (isScannerActive) {
-            Quagga.stop();
-            isScannerActive = false;
-            showMessage("Scanner stopped");
-        }
-    }
+        displayResult(code) {
+            const resultList = $("#result_strip ul.thumbnails");
+            const listItem = $("<li>").text(`Detected: ${code}`);
+            resultList.append(listItem);
+        },
 
-    // Export data to CSV
-    function exportCSV() {
-        if (csvData.length === 0) {
-            showMessage("No data to export", true);
-            return;
-        }
-        const csv = Papa.unparse(csvData);
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        saveAs(blob, "barcode_data.csv");
-        showMessage("Data exported successfully");
-    }
+        updateSettings() {
+            console.log("Settings updated.");
+        },
+    };
 
-    // Event listeners
-    startButton.addEventListener("click", () => {
-        if (isScannerActive) {
-            stopScanner();
-            startButton.textContent = "Start Scanner";
-        } else {
-            initScanner();
-            startButton.textContent = "Stop Scanner";
-        }
-    });
-
-    exportButton.addEventListener("click", exportCSV);
+    App.init();
 });
