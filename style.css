@@ -13,21 +13,11 @@ header {
     color: #fff;
 }
 
-.container {
-    padding: 20px;
-    max-width: 800px;
-    margin: auto;
-}
-
-.controls {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-label {
+fieldset {
     margin: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    display: inline-block;
 }
 
 button {
@@ -38,28 +28,27 @@ button {
     cursor: pointer;
     background-color: #28a745;
     color: #fff;
-    font-size: 1rem;
 }
 
-button.stop {
+button#stopScanner {
     background-color: #dc3545;
 }
 
 .viewport {
-    position: relative;
     width: 100%;
+    max-width: 640px;
     height: 400px;
     background-color: #000;
+    margin: 20px auto;
 }
 
-.thumbnails {
+#results ul {
     list-style-type: none;
     padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    margin: 0;
 }
 
-.thumbnails li {
-    margin: 5px;
+#results ul li {
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
 }
