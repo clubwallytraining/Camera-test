@@ -1,36 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced Barcode Scanner</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="styles.css">
+    <!-- Include Quagga2 and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" defer></script>
     <script src="app.js" defer></script>
 </head>
 <body>
-    <header>
-        <h1>Barcode Scanner with Quagga2</h1>
-    </header>
+<header>
+    <h1>Enhanced Barcode Scanner</h1>
+</header>
 
-    <main>
-        <div id="scanner-container">
-            <div id="interactive" class="viewport"></div>
-            <canvas id="overlay"></canvas>
+<main>
+    <section id="container" class="container">
+        <h3>Camera Controls</h3>
+        <p>
+            Select your desired settings below, then click "Start Scanner" to begin scanning barcodes.
+        </p>
+        <div class="controls">
+            <fieldset class="input-group">
+                <button id="stopScanner" class="stop">Stop Scanner</button>
+            </fieldset>
+            <fieldset class="reader-config-group">
+                <label>
+                    <span>Barcode-Type</span>
+                    <select id="barcodeType">
+                        <option value="code_128" selected>Code 128</option>
+                        <option value="code_39">Code 39</option>
+                        <option value="ean">EAN</option>
+                        <option value="upc">UPC</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Resolution</span>
+                    <select id="resolution">
+                        <option value="320x240">320x240</option>
+                        <option value="640x480" selected>640x480</option>
+                        <option value="1280x720">1280x720</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Camera</span>
+                    <select id="cameraSelection"></select>
+                </label>
+            </fieldset>
         </div>
 
-        <div id="controls">
-            <button id="startScanner">Start Scanner</button>
-            <button id="exportData">Export Data</button>
+        <div id="result_strip">
+            <ul class="thumbnails"></ul>
         </div>
 
-        <div id="message"></div>
-    </main>
+        <div id="interactive" class="viewport"></div>
+    </section>
+</main>
 
-    <footer>
-        <p>&copy; Barcode Scanner Demo</p>
-    </footer>
+<footer>
+    <p>&copy; Enhanced Barcode Scanner</p>
+</footer>
 </body>
 </html>
