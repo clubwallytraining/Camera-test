@@ -2,9 +2,9 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    text-align: center;
     background-color: #f4f4f4;
     color: #333;
+    text-align: center;
 }
 
 header {
@@ -13,69 +13,53 @@ header {
     color: #fff;
 }
 
-main {
-    margin: 20px;
+.container {
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
 }
 
-#scanner-container {
-    position: relative;
-    max-width: 600px;
-    margin: 0 auto;
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
 }
 
-.viewport {
-    width: 100%;
-    max-width: 600px;
-    height: 400px;
-    background-color: #000;
-}
-
-canvas#overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-}
-
-#controls {
-    margin: 20px 0;
+label {
+    margin: 10px;
 }
 
 button {
     padding: 10px 20px;
     margin: 5px;
-    font-size: 1rem;
-    cursor: pointer;
     border: none;
     border-radius: 5px;
-}
-
-#startScanner {
+    cursor: pointer;
     background-color: #28a745;
     color: #fff;
-}
-
-#exportData {
-    background-color: #007bff;
-    color: #fff;
-}
-
-#message {
-    margin: 10px;
-    padding: 10px;
     font-size: 1rem;
-    border-radius: 5px;
-    display: none;
 }
 
-#message.error {
+button.stop {
     background-color: #dc3545;
-    color: #fff;
 }
 
-#message.success {
-    background-color: #28a745;
-    color: #fff;
+.viewport {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background-color: #000;
+}
+
+.thumbnails {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.thumbnails li {
+    margin: 5px;
 }
