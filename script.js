@@ -1,5 +1,3 @@
-// script.js
-
 // Initialize variables
 let csvData = [];
 let currentUPC = '';
@@ -16,8 +14,7 @@ const video = document.getElementById('video');
 const overlay = document.getElementById('overlay');
 const overlayCtx = overlay.getContext('2d');
 
-// Load initial CSV data from GitHub Pages
-// Since GitHub Pages is static, you need to host the CSV file in the repository and fetch it
+// Load initial CSV data
 async function loadCSV() {
     try {
         const storedData = localStorage.getItem('csvData');
@@ -27,7 +24,6 @@ async function loadCSV() {
         } else {
             const response = await fetch(csvFileName);
             if (!response.ok) {
-                // If data.csv is empty or not found, initialize an empty array
                 if (response.status === 404 || response.status === 400) {
                     csvData = [];
                     console.warn('CSV file not found or empty. Initializing with empty data.');
@@ -41,17 +37,16 @@ async function loadCSV() {
                     console.warn('CSV file is empty. Initializing with empty data.');
                 } else {
                     const parsedData = Papa.parse(csvText, { header: true });
-                    csvData = parsedData.data.filter(row => row.upc); // Filter out empty rows
+                    csvData = parsedData.data.filter(row => row.upc);
                     console.log('Loaded CSV data from data.csv:', csvData);
                 }
-                // Save to localStorage
                 localStorage.setItem('csvData', JSON.stringify(csvData));
             }
         }
     } catch (error) {
         console.error('Error loading CSV:', error);
         showMessage('Error loading CSV file.');
-        csvData = []; // Initialize empty if not found
+        csvData = [];
     }
 }
 
@@ -67,45 +62,34 @@ function showMessage(msg, isError = true) {
 
 // Function to start the scanner
 function startScanner() {
-    Quagga.init({
-        inputStream: {
-            type: "LiveStream",
-            constraints: {
-                width: { ideal: 640 },
-                height: { ideal: 480 },
-                facingMode: "environment" // Use rear camera
+    Quagga.init(
+        {
+            inputStream: {
+                type: 'LiveStream',
+                constraints: {
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                    facingMode: 'environment',
+                },
+                target: document.querySelector('#video-container'),
             },
-            target: document.querySelector('#video-container') // Or '#yourElement' (optional)
+            decoder: {
+                readers: ['upc_reader', 'upc_e_reader'],
+            },
+            locate: true,
+            numOfWorkers: navigator.hardwareConcurrency || 4,
+            frequency: 10,
         },
-        decoder: {
-            readers: ["upc_reader", "upc_e_reader"] // Specify barcode types
-        },
-        locate: true,
-        numOfWorkers: navigator.hardwareConcurrency || 4,
-        frequency: 10,
-        debug: {
-            showCanvas: false,
-            showPatches: false,
-            showFoundPatches: false,
-            showSkeleton: false,
-            showLabels: false,
-            showPatchLabels: false,
-            showRemainingPatchLabels: false,
-            boxFromPatches: {
-                showTransformed: false,
-                showTransformedBox: false,
-                showBB: false
+        function (err) {
+            if (err) {
+                console.error('Error initializing Quagga:', err);
+                showMessage('Error initializing scanner. Please try again.', true);
+                return;
             }
+            Quagga.start();
+            console.log('Quagga scanner started.');
         }
-    }, function(err) {
-        if (err) {
-            console.error(err);
-            showMessage('Error initializing scanner.');
-            return;
-        }
-        Quagga.start();
-        console.log('Quagga started.');
-    });
+    );
 
     Quagga.onDetected(onDetected);
     Quagga.onProcessed(onProcessed);
@@ -114,7 +98,7 @@ function startScanner() {
 // Handler when a barcode is detected
 function onDetected(result) {
     const code = result.codeResult.code;
-    if (code !== currentUPC) { // Prevent multiple detections of the same UPC
+    if (code !== currentUPC) {
         currentUPC = code;
         Quagga.pause(); // Pause scanning while processing
         console.log('Detected UPC:', code);
@@ -122,7 +106,7 @@ function onDetected(result) {
     }
 }
 
-// Handler for processed frames to draw AR elements and the rectangle guide
+// Handler for processed frames
 function onProcessed(result) {
     overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
     if (result) {
@@ -131,17 +115,13 @@ function onProcessed(result) {
                 drawPath(box, 'rgba(0, 255, 0, 0.3)');
             });
         }
-
         if (result.box) {
             drawPath(result.box, '#00FF00');
         }
-
         if (result.codeResult && result.codeResult.code) {
             drawPath(result.line, '#FF0000');
         }
     }
-
-    // Draw the rectangle guide
     drawGuideRectangle();
 }
 
@@ -168,7 +148,7 @@ function drawGuideRectangle() {
 
     overlayCtx.beginPath();
     overlayCtx.lineWidth = 4;
-    overlayCtx.strokeStyle = 'rgba(255, 0, 0, 0.7)'; // Semi-transparent red
+    overlayCtx.strokeStyle = 'rgba(255, 0, 0, 0.7)';
     overlayCtx.rect(rectX, rectY, rectWidth, rectHeight);
     overlayCtx.stroke();
 }
@@ -177,10 +157,8 @@ function drawGuideRectangle() {
 function handleUPC(upc) {
     const item = csvData.find(row => row.upc === upc);
     if (item && item['item name'] && item['aisle location'] && item['downstack pallet']) {
-        // Item exists with all information
         showAROverlay(item);
     } else {
-        // Missing information
         currentUPC = upc;
         infoModal.style.display = 'block';
         modalUPC.textContent = upc;
@@ -190,20 +168,13 @@ function handleUPC(upc) {
 
 // Show AR Overlay
 function showAROverlay(item) {
-    // Clear any existing drawings
     overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
-    
-    // Display information on the screen as AR elements
     showMessage(`Item: ${item['item name']} | Aisle: ${item['aisle location']} | Pallet: ${item['downstack pallet']}`, false);
     console.log('Displaying item information:', item);
-    
-    // Optionally, you can implement more advanced AR overlays here
-    
-    // Resume scanning after displaying
+
     setTimeout(() => {
-        currentUPC = ''; // Reset currentUPC to allow re-detection
+        currentUPC = '';
         Quagga.start();
-        console.log('Quagga resumed.');
     }, 3000);
 }
 
@@ -218,7 +189,6 @@ saveInfoButton.addEventListener('click', () => {
         return;
     }
 
-    // Check if UPC already exists
     const existingIndex = csvData.findIndex(row => row.upc === currentUPC);
     if (existingIndex !== -1) {
         csvData[existingIndex]['item name'] = itemName;
@@ -226,30 +196,15 @@ saveInfoButton.addEventListener('click', () => {
         csvData[existingIndex]['downstack pallet'] = pallet;
         console.log('Updated existing item:', csvData[existingIndex]);
     } else {
-        // Add new entry to csvData
-        const newEntry = {
-            upc: currentUPC,
-            'item name': itemName,
-            'aisle location': aisleLocation,
-            'downstack pallet': pallet
-        };
+        const newEntry = { upc: currentUPC, 'item name': itemName, 'aisle location': aisleLocation, 'downstack pallet': pallet };
         csvData.push(newEntry);
         console.log('Added new item:', newEntry);
     }
 
-    // Save to localStorage
     localStorage.setItem('csvData', JSON.stringify(csvData));
-
-    // Clear input fields
-    document.getElementById('itemName').value = '';
-    document.getElementById('aisleLocation').value = '';
-    document.getElementById('pallet').value = '';
-
-    // Close modal and resume scanning
     infoModal.style.display = 'none';
     showMessage('Information saved.', false);
     Quagga.start();
-    console.log('Quagga resumed after saving information.');
 });
 
 // Export CSV
@@ -259,38 +214,24 @@ function exportCSV() {
         return;
     }
     const csv = Papa.unparse(csvData);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, "updated_data.csv");
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'updated_data.csv');
     showMessage('CSV exported successfully.', false);
-    console.log('CSV exported.');
 }
 
 // Event Listeners
 startButton.addEventListener('click', () => {
     startScanner();
     startButton.style.display = 'none';
-    console.log('Start Scanner button clicked.');
 });
 
 exportButton.addEventListener('click', exportCSV);
-console.log('Export CSV button initialized.');
-
-// Close modal when clicking outside of it
-window.onclick = function(event) {
-    if (event.target == infoModal) {
-        infoModal.style.display = "none";
-        Quagga.start();
-        console.log('Modal closed by clicking outside.');
-    }
-}
 
 // Initialize the app
 window.onload = loadCSV;
-console.log('Page loaded. CSV data is being loaded.');
 
 // Adjust canvas size when video metadata is loaded
 video.addEventListener('loadedmetadata', () => {
     overlay.width = video.videoWidth;
     overlay.height = video.videoHeight;
-    console.log('Canvas size set to video dimensions.');
 });
