@@ -1,34 +1,35 @@
 $(function () {
     const App = {
         init() {
-            this.attachListeners();
+            this.bindListeners();
             this.initCameraSelection();
         },
 
-        attachListeners() {
+        bindListeners() {
+            $("#startScanner").on("click", () => {
+                this.startScanner();
+            });
+
             $("#stopScanner").on("click", () => {
-                Quagga.stop();
-                console.log("Scanner stopped.");
+                this.stopScanner();
             });
 
             $("#barcodeType, #resolution, #cameraSelection").on("change", () => {
-                App.updateSettings();
-            });
-
-            $("#startScanner").on("click", () => {
-                App.startScanner();
+                console.log("Settings changed, reinitializing scanner...");
+                this.startScanner(); // Restart scanner with new settings
             });
         },
 
-        initCameraSelection() {
-            Quagga.CameraAccess.enumerateVideoDevices().then((devices) => {
-                const cameraSelection = $("#cameraSelection");
-                devices.forEach((device) => {
-                    const option = $("<option>")
-                        .val(device.deviceId)
-                        .text(device.label || `Camera ${cameraSelection.children().length + 1}`);
-                    cameraSelection.append(option);
-                });
+        async initCameraSelection() {
+            const cameras = await Quagga.CameraAccess.enumerateVideoDevices();
+            const cameraSelect = $("#cameraSelection");
+            cameraSelect.empty();
+
+            cameras.forEach((camera, index) => {
+                const option = $("<option>")
+                    .val(camera.deviceId)
+                    .text(camera.label || `Camera ${index + 1}`);
+                cameraSelect.append(option);
             });
         },
 
@@ -40,14 +41,15 @@ $(function () {
             Quagga.init(
                 {
                     inputStream: {
+                        name: "Live",
                         type: "LiveStream",
+                        target: document.querySelector("#interactive"),
                         constraints: {
                             width: { min: parseInt(resolution[0]) },
                             height: { min: parseInt(resolution[1]) },
                             deviceId: cameraDevice,
                             facingMode: "environment",
                         },
-                        target: document.querySelector("#interactive"),
                     },
                     decoder: {
                         readers: [`${barcodeType}_reader`],
@@ -56,7 +58,7 @@ $(function () {
                 },
                 (err) => {
                     if (err) {
-                        console.error(err);
+                        console.error("Quagga initialization error:", err);
                         return;
                     }
                     Quagga.start();
@@ -67,20 +69,21 @@ $(function () {
             Quagga.onDetected((data) => {
                 const code = data.codeResult.code;
                 if (code) {
-                    console.log(`Detected code: ${code}`);
-                    App.displayResult(code);
+                    console.log(`Detected barcode: ${code}`);
+                    this.displayResult(code);
                 }
             });
         },
 
-        displayResult(code) {
-            const resultList = $("#result_strip ul.thumbnails");
-            const listItem = $("<li>").text(`Detected: ${code}`);
-            resultList.append(listItem);
+        stopScanner() {
+            Quagga.stop();
+            console.log("Scanner stopped.");
         },
 
-        updateSettings() {
-            console.log("Settings updated.");
+        displayResult(code) {
+            const resultList = $("#resultList");
+            const listItem = $("<li>").text(`Detected: ${code}`);
+            resultList.append(listItem);
         },
     };
 
