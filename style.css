@@ -1,35 +1,33 @@
-/* style.css */
-
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-}
-
 body {
     font-family: Arial, sans-serif;
-    background-color: #222;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* Remove height: 100vh to prevent cropping */
-    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    background-color: #f4f4f4;
+    color: #333;
 }
 
-#video-container {
+header {
+    padding: 1rem;
+    background-color: #007bff;
+    color: #fff;
+}
+
+main {
+    margin: 20px;
+}
+
+#scanner-container {
     position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.viewport {
     width: 100%;
     max-width: 600px;
-    /* Remove flex: 1 to prevent stretching */
+    height: 400px;
     background-color: #000;
-}
-
-video {
-    width: 100%;
-    height: auto;
-    display: block;
 }
 
 canvas#overlay {
@@ -42,117 +40,42 @@ canvas#overlay {
 }
 
 #controls {
-    padding: 10px;
-    background-color: #333;
-    width: 100%;
-    max-width: 600px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    margin: 20px 0;
 }
 
 button {
-    padding: 10px 15px;
-    font-size: 16px;
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 1rem;
+    cursor: pointer;
     border: none;
     border-radius: 5px;
-    cursor: pointer;
 }
 
-#startButton {
+#startScanner {
     background-color: #28a745;
     color: #fff;
 }
 
-#startButton:hover {
-    background-color: #218838;
-}
-
-#exportButton {
+#exportData {
     background-color: #007bff;
     color: #fff;
 }
 
-#exportButton:hover {
-    background-color: #0056b3;
-}
-
 #message {
-    position: fixed;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 20px;
-    background-color: #dc3545;
-    color: #fff;
+    margin: 10px;
+    padding: 10px;
+    font-size: 1rem;
     border-radius: 5px;
     display: none;
-    z-index: 100;
-    font-size: 16px;
-    text-align: center;
 }
 
-/* Modal Styles */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+#message.error {
+    background-color: #dc3545;
+    color: #fff;
 }
 
-.modal-content {
-    background-color: #fefefe;
-    margin: 10% auto; /* 10% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 90%;
-    max-width: 400px; /* Could be more or less, depending on screen size */
-    border-radius: 8px;
-    color: #000;
-}
-
-.modal-content h2 {
-    margin-top: 0;
-}
-
-.modal-content input {
-    width: 100%;
-    padding: 8px;
-    margin: 8px 0;
-    box-sizing: border-box;
-}
-
-.modal-content button {
-    width: 100%;
-    padding: 10px;
+#message.success {
     background-color: #28a745;
     color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.modal-content button:hover {
-    background-color: #218838;
-}
-
-/* Responsive Design */
-@media (max-width: 600px) {
-    #controls {
-        flex-direction: column;
-    }
-
-    button {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-
-    button:last-child {
-        margin-bottom: 0;
-    }
 }
